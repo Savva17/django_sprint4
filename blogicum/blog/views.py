@@ -1,16 +1,14 @@
 from django.http import Http404
-from django.views.generic import (
-    ListView, DetailView, CreateView, DeleteView, UpdateView
-)
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseNotFound
-from django.db.models.base import Model as Model
 from django.db.models import Count
 from django.utils import timezone
+from django.views.generic import (
+    ListView, DetailView, CreateView, DeleteView, UpdateView
+)
 
 from .models import Post, Comment, Category
 
@@ -43,14 +41,13 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     template_name = 'blog/create.html'
     pk_url_kwarg = 'post_id'
 
-    def get_success_url(self):
-        return reverse('blog:index')
-
     def test_func(self):
         post = self.get_object()
-        # Проверяем, что пользователь является автором или администратором.
-        return (self.request.user == post.author or
-                self.request.user.is_superuser)
+        return (self.request.user == post.author
+                or self.request.user.is_superuser)
+
+    def get_success_url(self):
+        return reverse('blog:index')
 
 
 class PostDetailView(DetailView):
