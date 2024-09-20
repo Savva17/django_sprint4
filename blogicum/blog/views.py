@@ -11,17 +11,10 @@ from django.views.generic import (
 )
 
 from .models import Post, Comment, Category
-
 from .forms import AddPostForm, CommentForm
-
+from .mixins import CommentMixin, SuccessUrlMixin, GetObjectMixin
 
 User = get_user_model()
-
-
-# Создаём миксин для комментариев
-class CommentMixin:
-    model = Comment
-    template_name = 'blog/comment.html'
 
 
 class BlogListView(ListView):
@@ -169,7 +162,9 @@ class PostEditUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('blog:post_detail', kwargs={'post_id': self.object.pk})
 
 
-class AddCommentView(LoginRequiredMixin, CommentMixin, CreateView):
+class AddCommentView(
+    LoginRequiredMixin, CommentMixin, SuccessUrlMixin, CreateView
+):
     form_class = CommentForm
 
     def form_valid(self, form):
@@ -178,42 +173,22 @@ class AddCommentView(LoginRequiredMixin, CommentMixin, CreateView):
         form.instance.post = post
         return super().form_valid(form)
 
-    def get_success_url(self):
-        return reverse(
-            'blog:post_detail', kwargs={'post_id': self.kwargs['post_id']})
 
-
-class EditCommentView(LoginRequiredMixin, CommentMixin, UpdateView):
+class EditCommentView(
+    LoginRequiredMixin, CommentMixin, SuccessUrlMixin, GetObjectMixin,
+    UpdateView,
+):
     form_class = CommentForm
     pk_url_kwarg = 'comment_id'
-
-    def get_object(self, queryset=None):
-        comment = super().get_object(queryset)
-        if comment.author != self.request.user:
-            raise PermissionDenied(
-                "Вы не можете редактировать этот комментарий.")
-        return comment
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["post_id"] = self.kwargs['post_id']
         return context
 
-    def get_success_url(self):
-        return reverse(
-            'blog:post_detail', kwargs={'post_id': self.kwargs['post_id']})
 
-
-class CommentDeleteView(LoginRequiredMixin, CommentMixin, DeleteView):
+class CommentDeleteView(
+    LoginRequiredMixin, CommentMixin, SuccessUrlMixin, GetObjectMixin,
+    DeleteView,
+):
     pk_url_kwarg = 'comment_id'
-
-    def get_object(self, queryset=None):
-        # Проверяем, что комментарий принадлежит текущему пользователю.
-        comment = super().get_object(queryset)
-        if comment.author != self.request.user:
-            raise PermissionDenied("Вы не можете удалить этот комментарий.")
-        return comment
-
-    def get_success_url(self):
-        return reverse(
-            'blog:post_detail', kwargs={'post_id': self.object.post.id})

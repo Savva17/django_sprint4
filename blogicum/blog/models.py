@@ -105,3 +105,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['created_at']  # Сортировка
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return f'Комментарий {self.author.username} к посту {self.post.title}'
