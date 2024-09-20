@@ -3,7 +3,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import get_user_model
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404, redirect
-from django.core.exceptions import PermissionDenied
 from django.db.models import Count
 from django.utils import timezone
 from django.views.generic import (
